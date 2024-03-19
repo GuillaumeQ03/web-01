@@ -43,7 +43,7 @@ let CARDS_IMAGE = [
   card9,
 ];
 
-    /* class GameComponent constructor */
+/* class GameComponent constructor */
 export class GameComponent extends Component {
   constructor() {
     super(template)
@@ -56,25 +56,21 @@ export class GameComponent extends Component {
     this._flippedCard = null;
     this._matchedPairs = 0;
   }
-  init() {
-    // fetch the cards configuration from the server
-    this.fetchConfig(
-      (config) => {
-        this._config = config;
-        this._boardElement = document.querySelector(".cards");
-        // create cards out of the config
-        this._cards = [];
-        this._cards = this._config.ids.map(id => new CardComponent(id));
-        this._cards.forEach(card => {
-          this._boardElement.appendChild(card.getElement());
-          card.getElement().addEventListener(
-            "click",
-            () => {
-              this._flipCard(card);
-            });
+  async init() {
+    this._config = await this.fetchConfig();
+    this._boardElement = document.querySelector(".cards");
+    // create cards out of the config
+    this._cards = [];
+    this._cards = this._config.ids.map(id => new CardComponent(id));
+    this._cards.forEach(card => {
+      this._boardElement.appendChild(card.getElement());
+      card.getElement().addEventListener(
+        "click",
+        () => {
+          this._flipCard(card);
         });
-        this.start();
       });
+    this.start();
   }
   start() {
     this._startTime = Date.now();
@@ -85,28 +81,10 @@ export class GameComponent extends Component {
         document.querySelector("nav .navbar-title").textContent = `Player: ${this._name}. Elapsed time: ${seconds++}`;
       },1000);
   }
-  fetchConfig(cb) {
-    let xhr =
-      typeof XMLHttpRequest != "undefined"
-        ? new XMLHttpRequest()
-        : new ActiveXObject("Microsoft.XMLHTTP");
-    xhr.open("get", `${environment.api.host}/board?size=${this._size}`, true);
-    xhr.onreadystatechange = () => {
-      let status;
-      let data;
-      // https://xhr.spec.whatwg.org/#dom-xmlhttprequest-readystate
-      if (xhr.readyState == 4) {
-        // `DONE`
-        status = xhr.status;
-        if (status == 200) {
-          data = JSON.parse(xhr.responseText);
-          cb(data);
-        } else {
-          throw new Error(status);
-        }
-      }
-    };
-    xhr.send();
+  async fetchConfig() {
+    return fetch(`${environment.api.host}/board?size=${this._size}`).then(
+      (r) => r.json()
+    );
   }
   goToScore() {
     let timeElapsedInSeconds = Math.floor(
