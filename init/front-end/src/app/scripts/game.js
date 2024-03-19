@@ -64,20 +64,15 @@ export class GameComponent extends Component {
         this._boardElement = document.querySelector(".cards");
         // create cards out of the config
         this._cards = [];
-        // TODO #functional-programming: use Array.map() instead.
-        for (let i in this._config.ids) {
-          this._cards[i] = new CardComponent(this._config.ids[i]);
-        }
-        // TODO #functional-programming: use Array.forEach() instead.
-        for (let i in this._cards) {
-          let card = this._cards[i];
+        this._cards = this._config.ids.map(id => new CardComponent(id));
+        this._cards.forEach(card => {
           this._boardElement.appendChild(card.getElement());
           card.getElement().addEventListener(
             "click",
             () => {
               this._flipCard(card);
             });
-        }
+        });
         this.start();
       });
   }
